@@ -75,5 +75,74 @@ VT 端末のエミュレーションをします。</dd>
 
 </dl>
 
+<h2>文字コード</h2>
+
+文字コードに関連する用語
+
+<dl>
+  <dt id="CJK">CJK, CJKV, 東アジア(East Asian)の文字コード</dt>
+
+  <dd>
+    <p>
+      漢字を含む文字体系を持つ言語。
+      CJK(CJKV) = Chinese(中国語), Japanese(日本語), Korean(韓国語), (Vietnamese(ベトナム語))。
+    </p>
+
+    <p>
+      CJK(CJKV)環境では、使用する全ての文字を1バイトでは表現できないため、
+      1文字を2バイトで表現する<a href="#MBCS">マルチバイト文字</a>が使用されます。<br>
+      Unicodeが普及する前、各々の環境に合わせた文字コードが策定されました。
+    </p>
+
+    <p>
+      Tera Termはベトナム語漢字(チュノム)独自の文字コードをサポートしていません。<br>
+      Unicodeをつかった表示には対応してします。
+    </p>
+
+    <p>
+<pre>
+| Language                      | Code(CodePage)     |
+|-------------------------------|--------------------|
+| Chinese (Simplified Chinese)  | GB2312(CP936)      |
+| Chinese (Traditional Chinese) | Big5(CP950)        |
+| Japanese                      | `Shift_JIS(CP932)` |
+|                               | EUC(EUC-JP,CP51932)|
+| Korean                        | KS5601(CP949)      |
+</pre>
+<small>日本語のJIS codeはISO2022を枠組みにした異なるコード体系です<br>
+TODO ベトナム語漢字はVisual Studioがサポートしていない? CodePageなどを調べても文字コードがわからない</small>
+
+    </p>
+  </dd>
+
+  <dt id="SBCS">SBCS</dt>
+  <dd>
+    Single-byte character set, 1バイト文字セット。<br>
+    最大で256種の文字を表現できる。
+  </dd>
+
+  <dt id="DBCS">DBCS</dt>
+  <dd>
+    Double-byte character set, 2 バイト文字セット。<br>
+    SBCSを拡張して漢字なども含めた文字を表現できる。<br>
+    1バイトの文字と2バイトの文字が混在。<br>
+    Shift_jisはDBCSの1例。
+  </dd>
+
+  <dt id="MBCS">MBCS</dt>
+  <dd>
+    Multi-byte Character Set。<br>
+    3バイト以上の文字が使用される。<br>
+    JIS, UTF-8等。
+  </dd>
+
+  <dt>wide character, ワイド文字</dt>
+  <dd>
+    最小文字単位を2バイト以上とする文字表現。<br>
+    C言語ではwchar_t型。Windows用C/C++言語(Visual Studio)ではwchar_t型は2byte。<br>
+    WindowsのAPIでは2byteのワイド文字、文字コードはUTF-16LEが使用される。
+  </dd>
+</dl>
+
 </BODY>
 </HTML>
