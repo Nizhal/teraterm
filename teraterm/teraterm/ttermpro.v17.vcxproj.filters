@@ -34,6 +34,9 @@
     <Filter Include="ttpcmn">
       <UniqueIdentifier>{68f0946a-607e-4e50-89d8-edaee85394d0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ttplugin">
+      <UniqueIdentifier>{a94545c2-1e12-464e-9511-4061adb5c783}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="filesys.cpp">
@@ -82,9 +85,6 @@
       <Filter>Source Files %28C%29</Filter>
     </ClCompile>
     <ClCompile Include="..\common\ttlib.c">
-      <Filter>Source Files %28C%29</Filter>
-    </ClCompile>
-    <ClCompile Include="ttplug.c">
       <Filter>Source Files %28C%29</Filter>
     </ClCompile>
     <ClCompile Include="ttsetup.c">
@@ -231,6 +231,12 @@
     <ClCompile Include="logdlg.cpp">
       <Filter>dialog</Filter>
     </ClCompile>
+    <ClCompile Include="ttplugin_api.cpp">
+      <Filter>ttplugin</Filter>
+    </ClCompile>
+    <ClCompile Include="ttplug.c">
+      <Filter>ttplugin</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\cygterm\cygterm.ico">
@@ -337,12 +343,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ttime.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ttplug.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\ttplugin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ttsetup.h">
@@ -530,6 +530,18 @@
     </ClInclude>
     <ClInclude Include="logdlg.h">
       <Filter>dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="ttplug.h">
+      <Filter>ttplugin</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\ttplugin.h">
+      <Filter>ttplugin</Filter>
+    </ClInclude>
+    <ClInclude Include="ttplugin_api_i.h">
+      <Filter>ttplugin</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\ttplugin_api.h">
+      <Filter>ttplugin</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

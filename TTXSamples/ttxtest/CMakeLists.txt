@@ -29,6 +29,13 @@ if(SUPPORT_OLD_WINDOWS)
   endif()
 endif(SUPPORT_OLD_WINDOWS)
 
+target_sources(
+  ${PACKAGE_NAME}
+  PRIVATE
+  ../../teraterm/common/ttlib.c
+  ../../teraterm/common/i18n.c
+)
+
 set_target_properties(
   ${PACKAGE_NAME}
   PROPERTIES
@@ -41,5 +48,11 @@ target_include_directories(
   PRIVATE
   ../../teraterm/teraterm
   ../../teraterm/common
-  )
+)
+
+target_link_libraries(
+  ${PACKAGE_NAME}
+  PRIVATE
+  common_static
+)
 

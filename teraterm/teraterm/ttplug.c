@@ -41,8 +41,11 @@
 #include "ttplugin.h"
 #include "codeconv.h"
 #include "asprintf.h"
+#include "ttwinman.h"	// for cv
 
 #include "ttplug.h"
+#include "ttplugin_api.h"
+#include "ttplugin_api_i.h"
 
 typedef struct _ExtensionList {
 	TTXExports * exports;
@@ -65,6 +68,11 @@ static void loadExtension(wchar_t const *fileName, const wchar_t *UILanguageFile
 	DWORD err;
 	const wchar_t *sub_message;
 	HMODULE hPlugin;
+	TTPluginData plugin_data = {0};
+
+	plugin_data.reserve = 0;
+	plugin_data.pcv = &cv;
+	plugin_data.PluginAPI = PluginAPI;
 
 	hPlugin = LoadLibraryW(fileName);
 	if (hPlugin != NULL) {
@@ -87,7 +95,7 @@ static void loadExtension(wchar_t const *fileName, const wchar_t *UILanguageFile
 			memset(exports, 0, sizeof(TTXExports));
 			exports->size = sizeof(TTXExports);
 
-			if (bind(TTVERSION, exports)) {
+			if (bind(TTVERSION, exports, &plugin_data)) {
 				ExtensionList *newExtension;
 				ExtensionList *extensions = (ExtensionList *)realloc(Extensions, sizeof(ExtensionList) * (NumExtensions + 1));
 				if (extensions == NULL) {

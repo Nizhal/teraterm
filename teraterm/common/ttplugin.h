@@ -112,6 +112,9 @@ typedef struct {
    default behaviour, i.e. do nothing.
    This is all for binary compatibility across releases; if the record gets bigger,
    then the extra functions will be NULL for DLLs that don't understand them. */
-typedef BOOL (PASCAL * TTXBindProc)(WORD Version, TTXExports * exports);
+// 5.00
+//typedef BOOL (PASCAL * TTXBindProc)(WORD Version, TTXExports * exports);
+// plugin_data ‚ðŽg—p‚µ‚È‚¯‚ê‚Î 5.00 ‚Æ“¯‚¶API‚ÅŽg‚¦‚é
+typedef BOOL (PASCAL * TTXBindProc)(WORD Version, TTXExports * exports, void *plugin_data);
 
 #endif

@@ -30,7 +30,9 @@
 
 #include "teraterm.h"
 #include "tttypes.h"
+#include "ttlib.h"
 #include "ttplugin.h"
+#include "ttplugin_api.h"
 
 /* These are the standard libraries used below. The main Tera Term program and
    all its DLLs are each statically linked to the C runtime library --- i.e.
@@ -71,6 +73,8 @@ typedef struct {
   PTTSet ts;
   PComVar cv;
   HMENU SetupMenu;
+  TTPluginAPI *plugin_API;
+  TTPluginAPIs *plugin_APIs;
 } TInstVar;
 
 static TInstVar *pvar;
@@ -409,7 +413,8 @@ static TTXExports Exports = {
    extra functions that have been added since this extension was compiled
    will automatically be NULL and thus get default behaviour.)
 */
-BOOL __declspec(dllexport) PASCAL TTXBind(WORD Version, TTXExports *exports) {
+BOOL __declspec(dllexport) PASCAL TTXBind(WORD Version, TTXExports *exports, void *plugin_data)
+{
   int size = sizeof(Exports) - sizeof(exports->size);
   /* do version checking if necessary */
   /* if (Version!=TTVERSION) return FALSE; */
@@ -420,6 +425,10 @@ BOOL __declspec(dllexport) PASCAL TTXBind(WORD Version, TTXExports *exports) {
   memcpy((char *)exports + sizeof(exports->size),
     (char *)&Exports + sizeof(exports->size),
     size);
+
+  pvar->plugin_API = ((TTPluginData *)plugin_data)->PluginAPI;
+  pvar->plugin_API(0, (void **)&pvar->plugin_APIs);
+
   return TRUE;
 }
 

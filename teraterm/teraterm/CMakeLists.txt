@@ -70,6 +70,9 @@ add_executable(
   ttime.h
   ttplug.c
   ttplug.h
+  ttplugin_api.cpp
+  ../common/ttplugin_api.h
+  ttplugin_api_i.h
   ttsetup.c
   ttsetup.h
   ttwinman.c
@@ -261,6 +264,16 @@ source_group(
   "ttpcmn"
   REGULAR_EXPRESSION
   "..\/ttpcmn\/")
+
+source_group(
+  "ttplugin"
+  FILES
+  ttplug.c
+  ttplug.h
+  ../common/ttplugin.h
+  ttplugin_api.cpp
+  ../common/ttplugin_api.h
+  ttplugin_api_i.h)
 
 if(SUPPORT_OLD_WINDOWS)
   if(MSVC)

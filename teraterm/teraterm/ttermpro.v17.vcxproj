@@ -192,6 +192,7 @@
     <ClCompile Include="ttfileio.c" />
     <ClCompile Include="ttime.c" />
     <ClCompile Include="ttplug.c" />
+    <ClCompile Include="ttplugin_api.cpp" />
     <ClCompile Include="ttsetup.c" />
     <ClCompile Include="ttwinman.c" />
     <ClCompile Include="ttwsk.c" />
@@ -205,6 +206,7 @@
     <ClCompile Include="../ttpdlg/ttdlg.c" />
     <ClInclude Include="../ttpdlg/ttdlg.h" />
     <ClInclude Include="..\..\cygwin\cyglib\cyglib.h" />
+    <ClInclude Include="..\common\ttplugin_api.h" />
     <ClInclude Include="..\susie_plugin\libsusieplugin.h" />
     <ClInclude Include="..\ttpcmn\ttcmn_dup.h" />
     <ClInclude Include="..\ttpcmn\ttcmn_shared_memory.h" />
@@ -303,6 +305,7 @@
     <ClInclude Include="ttfileio.h" />
     <ClInclude Include="ttime.h" />
     <ClInclude Include="ttplug.h" />
+    <ClInclude Include="ttplugin_api_i.h" />
     <ClInclude Include="ttsetup.h" />
     <ClInclude Include="ttwinman.h" />
     <ClInclude Include="ttwsk.h" />
