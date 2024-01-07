@@ -17,12 +17,12 @@
 #include "ttplugin.h"
 #include "tt_res.h"
 #include "i18n.h"
+#include "inifile_com.h"
+#include "ttplugin_api.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
-#include "inifile_com.h"
 
 #define IniSection "TTXKanjiMenu"
 #define ORDER 5000
@@ -160,7 +160,8 @@ typedef struct {
 	PReadIniFile origReadIniFile;
 	PWriteIniFile origWriteIniFile;
 	BOOL UseOneSetting;
-	BOOL NeedResetCharSet;
+	TTPluginAPI *plugin_API;
+	TTPluginAPIs *plugin_APIs;
 } TInstVar;
 
 static TInstVar *pvar;
@@ -177,69 +178,6 @@ static void PASCAL TTXInit(PTTSet ts, PComVar cv) {
 	pvar->origReadIniFile = NULL;
 	pvar->origWriteIniFile = NULL;
 	pvar->UseOneSetting = TRUE;
-	pvar->NeedResetCharSet = FALSE;
-}
-
-/*
- * 端末設定ダイアログのフック関数1: UseOneSetting 用
- *
- * 送信と受信の漢字コード設定が同じになるように調整する。
- */
-static BOOL PASCAL TTXKanjiMenuSetupTerminal(HWND parent, PTTSet ts) {
-	WORD orgRecvCode, orgSendCode;
-	BOOL ret;
-
-	orgRecvCode = pvar->ts->KanjiCode;
-	orgSendCode = pvar->ts->KanjiCodeSend;
-
-	ret = pvar->origSetupTermDlg(parent, ts);
-
-	if (ret) {
-		if (orgRecvCode == pvar->ts->KanjiCode && orgSendCode != pvar->ts->KanjiCodeSend) {
-			// 送信コードのみ変更した場合は送信コードに合わせる
-			pvar->ts->KanjiCode = pvar->ts->KanjiCodeSend;
-		}
-		else {
-			// それ以外は受信コードに合わせる
-			pvar->ts->KanjiCodeSend = pvar->ts->KanjiCode;
-		}
-	}
-
-	return ret;
-}
-
-/*
- * 端末設定ダイアログのフック関数2: 内部状態リセット用
- *
- * 端末設定ダイアログをフックし、設定ダイアログを開かずに TRUE を返す事によって
- * 設定ダイアログ呼出の後処理のみを利用する。
- */
-static BOOL PASCAL ResetCharSet(HWND parent, PTTSet ts) {
-	(void)parent;
-	(void)ts;
-	pvar->NeedResetCharSet = FALSE;
-	return TRUE;
-}
-
-static void PASCAL TTXGetUIHooks(TTXUIHooks *hooks) {
-	if (pvar->NeedResetCharSet) {
-		// 内部状態リセットの為に呼び出された場合
-		*hooks->SetupTerminal = ResetCharSet;
-	}
-	else if (pvar->UseOneSetting && (pvar->ts->Language == IdJapanese || pvar->ts->Language == IdKorean)) {
-		// UseOneSetting が TRUE の時は端末設定ダイアログの後処理の為にフックする
-		pvar->origSetupTermDlg = *hooks->SetupTerminal;
-		*hooks->SetupTerminal = TTXKanjiMenuSetupTerminal;
-	}
-}
-
-/*
- * 漢字コード関連の内部状態のリセット
- * TTXからはTera Termの内部状態を直接いじれない為、端末設定ダイアログの後処理を利用する。
- */
-static void CallResetCharSet(HWND hWin){
-	pvar->NeedResetCharSet = TRUE;
-	SendMessage(hWin, WM_COMMAND, MAKELONG(ID_SETUP_TERMINAL, 0), 0);
 }
 
 /*
@@ -490,29 +428,28 @@ static void PASCAL TTXModifyPopupMenu(HMENU menu) {
  * This function is called when Tera Term receives a command message.
  */
 static int PASCAL TTXProcessCommand(HWND hWin, WORD cmd) {
-	WORD val;
+	WORD kanji_code_receive;
+	WORD kanji_code_send;
+	IdLanguage language;
+
+	// 設定を取得
+	pvar->plugin_APIs->GetCharset(pvar->cv, &language, &kanji_code_send, &kanji_code_receive);
 
 	if ((cmd > ID_MI_KANJIRECV) && (cmd <= ID_MI_KANJIRECV+IdUTF8)) {
-		val = cmd - ID_MI_KANJIRECV;
-		pvar->cv->KanjiCodeEcho = pvar->ts->KanjiCode = val;
+		kanji_code_receive = cmd - ID_MI_KANJIRECV;
 		if (pvar->UseOneSetting) {
-			pvar->cv->KanjiCodeSend = pvar->ts->KanjiCodeSend = val;
+			kanji_code_send = kanji_code_receive;
 		}
-		CallResetCharSet(hWin);
-		return UpdateRecvMenu(pvar->ts->KanjiCode)?1:0;
+		pvar->plugin_APIs->SetCharset(pvar->cv, language, kanji_code_send, kanji_code_receive);
+		return 1;
 	}
 	else if ((cmd > ID_MI_KANJISEND) && (cmd <= ID_MI_KANJISEND+IdUTF8)) {
-		val = cmd - ID_MI_KANJISEND;
-		pvar->cv->KanjiCodeSend = pvar->ts->KanjiCodeSend = val;
+		kanji_code_send = cmd - ID_MI_KANJISEND;
 		if (pvar->UseOneSetting) {
-			pvar->cv->KanjiCodeEcho = pvar->ts->KanjiCode = val;
-			CallResetCharSet(hWin);
-			return UpdateRecvMenu(pvar->ts->KanjiCode)?1:0;
+			kanji_code_receive = kanji_code_send;
 		}
-		else {
-			CallResetCharSet(hWin);
-			return UpdateSendMenu(pvar->ts->KanjiCodeSend)?1:0;
-		}
+		pvar->plugin_APIs->SetCharset(pvar->cv, language, kanji_code_send, kanji_code_receive);
+		return 1;
 	}
 	else if (cmd == ID_MI_USEONESETTING) {
 		if (pvar->UseOneSetting) {
@@ -522,8 +459,8 @@ static int PASCAL TTXProcessCommand(HWND hWin, WORD cmd) {
 		else {
 			pvar->UseOneSetting = TRUE;
 
-			val = pvar->ts->KanjiCode;
-			pvar->cv->KanjiCodeSend = pvar->ts->KanjiCodeSend = val;
+			kanji_code_send = kanji_code_receive;
+			pvar->plugin_APIs->SetCharset(pvar->cv, language, kanji_code_send, kanji_code_receive);
 
 			DeleteSendKcodeMenu(pvar->hmEncode);
 		}
@@ -551,7 +488,7 @@ static TTXExports Exports = {
 
 /* Now we just list the functions that we've implemented. */
 	TTXInit,
-	TTXGetUIHooks,
+	NULL, // TTXGetUIHooks,	//
 	TTXGetSetupHooks,
 	NULL, // TTXOpenTCP,
 	NULL, // TTXCloseTCP,
@@ -560,10 +497,13 @@ static TTXExports Exports = {
 	TTXModifyPopupMenu,
 	TTXProcessCommand,
 	NULL, // TTXEnd,
-	NULL  // TTXSetCommandLine
+	NULL, // TTXSetCommandLine
+	NULL, // TTXOpenFile
+	NULL, // TTXCloseFile
 };
 
-BOOL __declspec(dllexport) PASCAL TTXBind(WORD Version, TTXExports *exports) {
+BOOL __declspec(dllexport) PASCAL TTXBind(WORD Version, TTXExports *exports, void *plugin_data)
+{
 	int size = sizeof(Exports) - sizeof(exports->size);
 	/* do version checking if necessary */
 	/* if (Version!=TTVERSION) return FALSE; */
@@ -575,6 +515,10 @@ BOOL __declspec(dllexport) PASCAL TTXBind(WORD Version, TTXExports *exports) {
 	memcpy((char *)exports + sizeof(exports->size),
 	       (char *)&Exports + sizeof(exports->size),
 	       size);
+
+	pvar->plugin_API = ((TTPluginData*)plugin_data)->PluginAPI;
+	pvar->plugin_API(0, (void**) & pvar->plugin_APIs);
+
 	return TRUE;
 }
 
